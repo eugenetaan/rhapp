@@ -1,6 +1,6 @@
 import { Dispatch, GetState } from '../types'
 import { ActionTypes, Booking, Facility, FACILITY_ACTIONS } from './types'
-import { ENDPOINTS, DOMAINS, get, post, DOMAIN_URL, put } from '../endpoints'
+import { ENDPOINTS, DOMAINS, get, post, DOMAIN_URL } from '../endpoints'
 import dayjs from 'dayjs'
 
 export const SetCreateBookingError = (newError: string) => async (dispatch: Dispatch<ActionTypes>) => {
@@ -252,7 +252,11 @@ export const handleCreateBooking = (isEdit: boolean) => (dispatch: Dispatch<Acti
     endTime: parseInt((newBookingToDate.getTime() / 1000).toFixed(0)),
     description: newBookingDescription,
   }
-  if (isEdit) {
+  if (selectedFacilityId === 0) {
+    dispatch({ type: FACILITY_ACTIONS.HANDLE_CREATE_BOOKING, createFailure: true, createSuccess: false })
+    return
+  }
+  if (!isEdit) {
     post(ENDPOINTS.BOOKING, DOMAINS.FACILITY, requestBody)
       .then((resp) => {
         if (resp.status >= 400) {
@@ -269,7 +273,14 @@ export const handleCreateBooking = (isEdit: boolean) => (dispatch: Dispatch<Acti
         dispatch({ type: FACILITY_ACTIONS.HANDLE_CREATE_BOOKING, createFailure: true, createSuccess: false })
       })
   } else {
-    put(ENDPOINTS.BOOKING, DOMAINS.FACILITY, requestBody)
+    fetch(DOMAIN_URL.FACILITY + ENDPOINTS.BOOKING + '/' + selectedFacilityId, {
+      method: 'PUT',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    })
       .then((resp) => {
         if (resp.status >= 400) {
           dispatch({ type: FACILITY_ACTIONS.HANDLE_CREATE_BOOKING, createFailure: true, createSuccess: false })
@@ -293,6 +304,13 @@ export const SetIsLoading = (desiredState: boolean) => (dispatch: Dispatch<Actio
 
 export const setSelectedFacility = (facilityID: number) => (dispatch: Dispatch<ActionTypes>) => {
   dispatch({ type: FACILITY_ACTIONS.SET_SELECTED_FACILITY, selectedFacilityId: facilityID })
+}
+
+export const resetNewBooking = () => (dispatch: Dispatch<ActionTypes>) => {
+  dispatch({
+    type: FACILITY_ACTIONS.EDIT_MY_BOOKING,
+    newBooking: undefined,
+  })
 }
 
 export const fetchSelectedFacility = (bookingId: number) => async (dispatch: Dispatch<ActionTypes>) => {

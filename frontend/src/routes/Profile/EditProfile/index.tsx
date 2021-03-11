@@ -35,7 +35,6 @@ const ProfileComponent = styled.div`
 
 const CardContainer = styled.div`
   position: relative;
-  width: 80vw;
   margin: 0 auto;
 `
 
@@ -79,6 +78,7 @@ export default function EditProfile() {
   let ccaToBeAdded = ''
   let moduleToBeAdded = ''
   const handleChangeAutoComplete = (type: string) => (value: string) => {
+    dispatch(setHasChanged(true))
     switch (type) {
       case 'CCAs':
         ccaToBeAdded = value
