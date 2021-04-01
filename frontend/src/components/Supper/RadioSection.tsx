@@ -2,11 +2,19 @@ import React from 'react'
 import styled from 'styled-components'
 
 import { Radio } from 'antd'
-import { Option } from '../../store/supper/types'
+import { Custom } from '../../store/supper/types'
 
 const MainContainer = styled.div`
   display: flex;
   flex-direction: column;
+`
+const TitleText = styled.div`
+  font-weight: 500;
+`
+
+const OtherText = styled.text`
+  font-weight: 200;
+  font-size: 14px;
 `
 
 const RadioButton = styled(Radio)`
@@ -27,19 +35,22 @@ const RadioButton = styled(Radio)`
 `
 
 type Props = {
-  data: Option[]
+  data: Custom
 }
 
 export const RadioSection = (props: Props) => {
   return (
     <MainContainer>
-      {props.data.map((option, index) => {
-        return (
-          <RadioButton key={index} checked={option.isSelected}>
-            {`${option.name} (${option.price})`}
-          </RadioButton>
-        )
-      })}
+      <TitleText>{props.data.title}</TitleText>
+      <>
+        {props.data.options.map((option, index) => {
+          return (
+            <RadioButton key={index} checked={option.isSelected}>
+              <OtherText>{`${option.name} ${option.price !== 0 ? `(+$${option.price})` : ''}`}</OtherText>
+            </RadioButton>
+          )
+        })}
+      </>
     </MainContainer>
   )
 }
