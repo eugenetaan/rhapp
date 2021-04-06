@@ -115,21 +115,10 @@ export type PaymentInfo = {
 
 export enum SUPPER_ACTIONS {
   SET_IS_LOADING = 'SUPPER_ACTIONS.SET_IS_LOADING',
-  GET_COLLATED_ORDER = 'SUPPER_ACTION.GET_COLLATED_ORDER',
-  GET_ORDER_BY_ID = 'SUPPER_ACTION.GET_ORDER_BY_ID',
-  GET_ORDER_BY_USER = 'SUPPER_ACTION.GET_ORDER_BY_USER',
-  SET_ORDER_BY_ID = 'SUPPER_ACTION.SET_ORDER_BY_ID',
   GET_ALL_RESTAURANTS = 'SUPPER_ACTIONS.GET_ALL_RESTAURANTS',
-  GET_RESTAURANT_BY_ID = 'SUPPER_ACTIONS.GET_RESTAURANT_BY_ID',
-  GET_FOOD_BY_ID = 'SUPPER_ACTIONS.GET_FOOD_BY_ID',
-  SET_FOOD_BY_ID = 'SUPPER_ACTIONS.SET_FOOD_BY_ID',
-  SET_SUPPER_GROUP = 'SUPPER_ACTIONS.SET_SUPPER_GROUP',
-  GET_SUPPER_GROUP_BY_ID = 'SUPPER_ACTIONS.GET_SUPPER_GROUP_BY_ID',
   GET_ALL_SUPPER_GROUPS = 'SUPPER_ACTIONS.GET_ALL_SUPPER_GROUPS',
-  GET_RESTAURANT_MENU = 'SUPPER_ACTIONS.GET_RESTAURANT_MENU',
-  GET_MENU_FOOD = 'SUPPER_ACTIONS.GET_MENU_FOOD',
-  GET_ORDER_HISTORY = 'SUPPER_ACTIONS.GET_ORDER_HISTORY',
-  GET_SUPPER_GROUP_HISTORY = 'SUPPER_ACTIONS.GET_SUPPER_GROUP_HISTORY',
+  GET_COLLATED_ORDER = 'SUPPER_ACTIONS.GET_COLLATED_ORDER',
+  GET__SELECTED_SUPPER_IDS = 'SUPPER_ACTIONS.GET__SELECTED_SUPPER_IDS',
   SET_COUNT = 'SUPPER_ACTIONS.SET_COUNT',
   SET_PRICE_LIMIT = 'SUPPER_ACTIONS.SET_PRICE_LIMIT',
   SET_EXPANDABLE_CARD_STATUS = 'SUPPER_ACTIONS.SET_EXPANDABLE_CARD_STATUS',
@@ -141,54 +130,9 @@ type SetIsLoading = {
   isLoading: boolean
 }
 
-type GetCollatedOrder = {
-  type: typeof SUPPER_ACTIONS.GET_COLLATED_ORDER
-  collatedOrder: CollatedOrder | null
-}
-
-type GetOrderById = {
-  type: typeof SUPPER_ACTIONS.GET_ORDER_BY_ID
-  order: Order | null
-}
-
-type GetOrderByUser = {
-  type: typeof SUPPER_ACTIONS.GET_ORDER_BY_USER
-  order: Order | null
-}
-
-type SetOrderById = {
-  type: typeof SUPPER_ACTIONS.SET_ORDER_BY_ID
-  order: Order | null
-}
-
 type GetAllRestaurants = {
   type: typeof SUPPER_ACTIONS.GET_ALL_RESTAURANTS
   allRestaurants: Restaurant[]
-}
-
-type GetRestaurantById = {
-  type: typeof SUPPER_ACTIONS.GET_RESTAURANT_BY_ID
-  restaurant: Restaurant
-}
-
-type GetFoodById = {
-  type: typeof SUPPER_ACTIONS.GET_FOOD_BY_ID
-  food: Food
-}
-
-type SetFoodById = {
-  type: typeof SUPPER_ACTIONS.SET_FOOD_BY_ID
-  food: Food
-}
-
-type SetSupperGroup = {
-  type: typeof SUPPER_ACTIONS.SET_SUPPER_GROUP
-  supperGroup: SupperGroup | null
-}
-
-type GetSupperGroupById = {
-  type: typeof SUPPER_ACTIONS.GET_SUPPER_GROUP_BY_ID
-  supperGroup: SupperGroup | null
 }
 
 type GetAllSupperGroups = {
@@ -196,24 +140,17 @@ type GetAllSupperGroups = {
   allSupperGroups: SupperGroup[]
 }
 
-type GetRestaurantMenu = {
-  type: typeof SUPPER_ACTIONS.GET_RESTAURANT_MENU
-  menu: FoodMenu[]
+type GetCollatedOrder = {
+  type: typeof SUPPER_ACTIONS.GET_COLLATED_ORDER
+  collatedOrder: CollatedOrder | null
 }
 
-type GetMenuFood = {
-  type: typeof SUPPER_ACTIONS.GET_MENU_FOOD
-  menuFood: FoodMenu
-}
-
-type GetOrderHistory = {
-  type: typeof SUPPER_ACTIONS.GET_ORDER_HISTORY
-  orderHistory: Order[]
-}
-
-type GetSupperGroupHistory = {
-  type: typeof SUPPER_ACTIONS.GET_SUPPER_GROUP_HISTORY
-  supperGroupHistory: SupperGroup[]
+type GetSelectedSupperIds = {
+  type: typeof SUPPER_ACTIONS.GET__SELECTED_SUPPER_IDS
+  selectedSupperGroupId: string | null
+  selectedOrderId: string | null
+  selectedRestaurantId: string | null
+  selectedFoodId: string | null
 }
 
 type SetCount = {
@@ -239,20 +176,9 @@ type SetSelectedPaymentMethod = {
 export type ActionTypes =
   | SetIsLoading
   | GetAllRestaurants
-  | GetRestaurantById
-  | GetOrderById
-  | GetOrderByUser
-  | GetCollatedOrder
-  | SetOrderById
-  | GetFoodById
-  | SetFoodById
-  | SetSupperGroup
-  | GetSupperGroupById
   | GetAllSupperGroups
-  | GetRestaurantMenu
-  | GetMenuFood
-  | GetOrderHistory
-  | GetSupperGroupHistory
+  | GetCollatedOrder
+  | GetSelectedSupperIds
   | SetCount
   | SetPriceLimit
   | SetExpandableCardStatus
