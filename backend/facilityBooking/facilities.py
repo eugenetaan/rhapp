@@ -976,18 +976,19 @@ def collated_orders(supperGroupId):
 
         data['collatedOrderList'] = []
         for food in data['foods']:
-            if not data['collatedFoods']:
-                data['collatedFoods'].append(food)
-                data['collatedFoods'][-1]['userIdList'] = [food['userID']]
-                data['collatedFoods'][-1].pop('userID')
-            elif food['foodMenuId'] == data['collatedFoods'][-1]['foodMenuId'] and food['customHash'] == \
-                    data['collatedFoods'][-1]['customHash']:
-                data['collatedFoods'][-1]['quantity'] += food['quantity']
-                data['collatedFoods'][-1]['userIdList'].append(food['userID'])
+            if not data['collatedOrderList']:
+                data['collatedOrderList'].append(food)
+                data['collatedOrderList'][-1]['userIdList'] = [food['userID']]
+                data['collatedOrderList'][-1].pop('userID')
+            elif food['foodMenuId'] == data['collatedOrderList'][-1]['foodMenuId'] and food['customHash'] == \
+                    data['collatedOrderList'][-1]['customHash']:
+                data['collatedOrderList'][-1]['quantity'] += food['quantity']
+                data['collatedOrderList'][-1]['userIdList'].append(
+                    food['userID'])
             else:
-                data['collatedFoods'].append(food)
-                data['collatedFoods'][-1]['userIdList'] = [food['userID']]
-                data['collatedFoods'][-1].pop('userID')
+                data['collatedOrderList'].append(food)
+                data['collatedOrderList'][-1]['userIdList'] = [food['userID']]
+                data['collatedOrderList'][-1].pop('userID')
 
         data.pop('foods')
         for food in data['collatedOrderList']:
