@@ -290,7 +290,7 @@ def all_supper_group():
             },
             {
                 '$addFields': {
-                    'totalPrice': {'$sum': '$orderList.totalCost'},
+                    'currentFoodCost': {'$sum': '$orderList.totalCost'},
                     'numOrders': {'$size': '$orderList'},
                     'restaurantLogo': '$restaurant.restaurantLogo',
                     'restaurantId': '$restaurant._id'
@@ -382,7 +382,7 @@ def supper_group(supperGroupId):
                 },
                 {
                     '$addFields': {
-                        'totalPrice': {'$sum': '$orderList.totalCost'},
+                        'currentFoodCost': {'$sum': '$orderList.totalCost'},
                         'numOrders': {'$size': '$orderList'},
                         'restaurantLogo': '$restaurant.restaurantLogo',
                         'restaurantId': '$restaurant._id',
@@ -852,7 +852,7 @@ def user_join_group_history(userID):
             },
             {
                 '$addFields': {
-                    'totalPrice': {'$sum': '$orderList.totalCost'},
+                    'currentFoodCost': {'$sum': '$orderList.totalCost'},
                     'numOrders': {'$size': '$orderList'},
                     'restaurantLogo': '$restaurant.restaurantLogo'
                 }
@@ -903,7 +903,7 @@ def user_supper_group_history(userID):
             },
             {
                 '$addFields': {
-                    'totalPrice': {'$sum': '$orderList.totalCost'},
+                    'currentFoodCost': {'$sum': '$orderList.totalCost'},
                     'numOrders': {'$size': '$orderList'},
                     'restaurantLogo': '$restaurant.restaurantLogo'
                 }
