@@ -296,10 +296,11 @@ def all_supper_group():
                     'restaurantId': '$restaurant._id'
                 }
             },
-            {'$project': {'orderList': 0, '_id': 0, 'restaurant': 0}}
+            {'$project': {'_id': 0, 'restaurant': 0}}
         ]
 
         result = db.SupperGroup.aggregate(pipeline)
+
 
         data = []
         currentTime = int(datetime.now().timestamp())
@@ -310,8 +311,15 @@ def all_supper_group():
                 query = {'supperGroupId': supperGroup.get('supperGroupId')}
                 changes = {'$set': {'status': 'closed'}}
                 db.SupperGroup.update_one(query, changes)
-            data.append(supperGroup)
+
+            # Creates userIDList for each supper group
+            supperGroup['userIdList'] = []
+            for order in supperGroup['orderList']:
+                supperGroup['userIdList'].append(order['userID'])
+            supperGroup.pop('orderList')
+
             supperGroup['restaurantId'] = str(supperGroup.pop('restaurantId'))
+            data.append(supperGroup)
 
         data.sort(key=lambda x: x.get('createdAt'), reverse=True)
 
