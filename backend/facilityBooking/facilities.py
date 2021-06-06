@@ -983,6 +983,7 @@ def collated_orders(supperGroupId):
             elif food['foodMenuId'] == data['collatedOrderList'][-1]['foodMenuId'] and food['customHash'] == \
                     data['collatedOrderList'][-1]['customHash']:
                 data['collatedOrderList'][-1]['quantity'] += food['quantity']
+                data['collatedOrderList'][-1]['foodPrice'] += food['foodPrice']
                 data['collatedOrderList'][-1]['userIdList'].append(
                     food['userID'])
             else:
