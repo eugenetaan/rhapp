@@ -333,7 +333,7 @@ def all_supper_group():
 @cross_origin(supports_credentials=True)
 def create_supper_group():
     try:
-        data = request.get_json()
+        supperGroupData = request.get_json()
 
         # auto-increment supperGroupId
         lastsupperGroupID = list(db.SupperGroup.find().sort(
@@ -341,10 +341,30 @@ def create_supper_group():
         newsupperGroupID = 1 if len(lastsupperGroupID) == 0 else int(
             lastsupperGroupID[0].get("supperGroupId")) + 1
 
-        data["supperGroupId"] = newsupperGroupID
-        data["createdAt"] = int(datetime.now().timestamp())
-        db.SupperGroup.insert_one(data)
-        data['_id'] = str(data.pop('_id'))
+        supperGroupData["supperGroupId"] = newsupperGroupID
+        supperGroupData["createdAt"] = int(datetime.now().timestamp())
+        db.SupperGroup.insert_one(supperGroupData)
+        supperGroupData['_id'] = str(supperGroupData.pop('_id'))
+
+        # Automatically creates order for supperGroup owner
+        orderData = {
+                    "supperGroupId": supperGroupData['supperGroupId'],
+                    "userContact": supperGroupData['phoneNumber'],
+                    "foodIds": [],
+                    "userID": supperGroupData['ownerId'],
+                    "createdAt": supperGroupData["createdAt"],
+                    "paymentMethod": supperGroupData['paymentInfo'][0]['paymentMethod'],
+                    "totalCost": 0,
+                    "hasPaid": False,
+                    "hasReceived": False
+                    }
+
+        db.Order.insert_one(orderData)
+        orderData['orderId'] = str(orderData.pop('_id'))
+
+        data = {'supperGroup': supperGroupData,
+                'orderId': orderData['orderId']}
+
         response = {"status": "success",
                     "message": "Successfully created supper group!",
                     "data": data}
