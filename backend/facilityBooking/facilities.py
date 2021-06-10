@@ -1061,11 +1061,14 @@ def user_order(supperGroupId, userID):
         ]
 
         temp = db.Order.aggregate(pipeline)
-        data = temp
+        data = None
 
         # Only 1 item in temp, can only access it like this otherwise its a mongo array object
         for item in temp:
             data = item
+
+        if data is None:
+            raise Exception("User " + str(userID) + " was not found in supper group " + str(supperGroupId))
 
         data['orderId'] = str(data.pop('_id'))
 
