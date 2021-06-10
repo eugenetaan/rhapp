@@ -1061,6 +1061,7 @@ def user_order(supperGroupId, userID):
         ]
 
         temp = db.Order.aggregate(pipeline)
+        data = temp
 
         # Only 1 item in temp, can only access it like this otherwise its a mongo array object
         for item in temp:
