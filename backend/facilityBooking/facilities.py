@@ -8,6 +8,7 @@ from datetime import datetime
 from threading import Thread
 from bson.objectid import ObjectId
 import copy
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
 def removeObjectID(xs):
@@ -262,6 +263,20 @@ def delete_booking(bookingID):
 
 
 ###########################################################
+#                   SUPPER ROUTES                         #
+###########################################################
+
+sched = BackgroundScheduler(daemon=True)
+
+def closeSupperGroup(supperGroupId):
+    result = db.SupperGroup.find({'supperGroupId': supperGroupId})
+    data = None
+    for supperGroup in result:
+        data = supperGroup
+    data['status'] = 'Closed'
+    db.SupperGroup.update_one({"supperGroupId": supperGroupId},
+                                      {"$set": data})
+    # print("Supper Group Closed")
 
 
 @app.route('/supper/supperGroup', methods=['GET'])
@@ -345,6 +360,12 @@ def create_supper_group():
         supperGroupData["createdAt"] = int(datetime.now().timestamp())
         db.SupperGroup.insert_one(supperGroupData)
         supperGroupData['_id'] = str(supperGroupData.pop('_id'))
+
+        # Add scheduler to close supper group order
+        closingTime = datetime.fromtimestamp(supperGroupData['closingTime'])
+        sched.add_job(closeSupperGroup, 'date', run_date=closingTime, args=[newsupperGroupID])
+        if not sched.running:
+            sched.start()
 
         # Automatically creates order for supperGroup owner
         orderData = {
@@ -1079,6 +1100,20 @@ def user_order(supperGroupId, userID):
     except Exception as e:
         print(e)
         return make_response({"status": "failed", "err": str(e)}, 400)
+
+
+def delete_supper_group(supperGroupId):
+    foodIdList = list(db.Order.find(
+                {'supperGroupId': supperGroupId}, {'foodIds': 1, '_id': 0}))
+    foods = [food.get('foodIds') for food in foodIdList]
+
+    remove = db.SupperGroup.delete_one(
+        {"supperGroupId": supperGroupId}).deleted_count
+    if remove == 0:
+        raise Exception("Supper group not found")
+    db.Order.delete_many({'supperGroupId': supperGroupId})
+    db.FoodOrder.delete_many({'_id': {'$in': foods}})
+    print("Supper Group deleted!")
 
 
 ###########################################################
