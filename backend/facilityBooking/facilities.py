@@ -8,6 +8,8 @@ from datetime import datetime
 from threading import Thread
 from bson.objectid import ObjectId
 import copy
+
+from pymongo import database
 from apscheduler.schedulers.background import BackgroundScheduler
 
 
@@ -503,6 +505,13 @@ def supper_group(supperGroupId):
 
             db.SupperGroup.update_one({"supperGroupId": supperGroupId},
                                       {"$set": data})
+                                      
+            # Add scheduler to close supper group order
+            closingTime = datetime.fromtimestamp(data['closingTime'])
+            sched.add_job(closeSupperGroup, 'date',
+                        run_date=closingTime, args=[supperGroupId])
+            if not sched.running:
+                sched.start()
 
             response = {"status": "success",
                         "message": "Supper Group edited",
