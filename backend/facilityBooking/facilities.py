@@ -1056,6 +1056,34 @@ def collated_orders(supperGroupId):
         return make_response({"status": "failed", "err": str(e)}, 400)
 
 
+@app.route('/supper/supperGroup/<int:supperGroupId>/payment', methods=['PUT'])
+@cross_origin(supports_credentials=True)
+def order_payments(supperGroupId):
+    try:
+        if request.method == 'PUT':
+            data = request.get_json()
+
+            received_orders = []
+            not_received_orders = []
+            for order in data:
+                if order['hasReceived']:
+                    received_orders.append(ObjectId(order['orderId']))
+                else:
+                    not_received_orders.append(ObjectId(order['orderId']))
+
+            db.Order.update_many({"_id": {"$in": received_orders}},
+                                {"$set": {"hasReceived": True}})
+
+            db.Order.update_many({"_id": {"$in": not_received_orders}},
+                                {"$set": {"hasReceived": False}})
+
+            response = {"status": "success", "data": data}
+            return make_response(response, 200)
+    except Exception as e:
+        print(e)
+        return make_response({"status": "failed", "err": str(e)}, 400)
+
+
 @app.route('/supper/supperGroup/<int:supperGroupId>/user/<userID>', methods=['GET'])
 @cross_origin(supports_credentials=True)
 def user_order(supperGroupId, userID):
@@ -1082,10 +1110,14 @@ def user_order(supperGroupId, userID):
         ]
 
         temp = db.Order.aggregate(pipeline)
+        data = None
 
         # Only 1 item in temp, can only access it like this otherwise its a mongo array object
         for item in temp:
             data = item
+
+        if data is None:
+            raise Exception("User " + str(userID) + " was not found in supper group " + str(supperGroupId))
 
         data['orderId'] = str(data.pop('_id'))
 
