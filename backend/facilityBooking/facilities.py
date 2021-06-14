@@ -544,6 +544,10 @@ def supper_group(supperGroupId):
 def create_order():
     try:
         data = request.get_json()
+        data['foodIds'] = []
+        data['totalCost'] = 0
+        data['paymentMethod'] = 'Nil'
+        data['userContact'] = 0
         data["createdAt"] = int(datetime.now().timestamp())
         data['hasPaid'] = False
         data['hasReceived'] = False
