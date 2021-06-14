@@ -317,16 +317,14 @@ def all_supper_group():
         ]
 
         result = db.SupperGroup.aggregate(pipeline)
-
-
         data = []
         currentTime = int(datetime.now().timestamp())
         for supperGroup in result:
-            if supperGroup.get('status') == 'open' and supperGroup.get('closingTime') <= currentTime:
+            if supperGroup.get('status') == 'Open' and supperGroup.get('closingTime') <= currentTime:
                 # Checks if closingTime has passed. If so, set status to closed.
-                supperGroup['status'] = 'closed'
+                supperGroup['status'] = 'Closed'
                 query = {'supperGroupId': supperGroup.get('supperGroupId')}
-                changes = {'$set': {'status': 'closed'}}
+                changes = {'$set': {'status': 'Closed'}}
                 db.SupperGroup.update_one(query, changes)
 
             # Creates userIDList for each supper group
@@ -336,7 +334,10 @@ def all_supper_group():
             supperGroup.pop('orderList')
 
             supperGroup['restaurantId'] = str(supperGroup.pop('restaurantId'))
-            data.append(supperGroup)
+
+            # Filters only open supper groups
+            if supperGroup['status'] == 'Open': 
+                data.append(supperGroup)
 
         data.sort(key=lambda x: x.get('createdAt'), reverse=True)
 
