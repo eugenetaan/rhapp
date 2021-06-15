@@ -9,6 +9,9 @@ from threading import Thread
 from bson.objectid import ObjectId
 import copy
 
+from pymongo import database
+from apscheduler.schedulers.background import BackgroundScheduler
+
 
 def removeObjectID(xs):
     for i, item in enumerate(xs, start=0):
@@ -262,6 +265,20 @@ def delete_booking(bookingID):
 
 
 ###########################################################
+#                   SUPPER ROUTES                         #
+###########################################################
+
+sched = BackgroundScheduler(daemon=True)
+
+def closeSupperGroup(supperGroupId):
+    result = db.SupperGroup.find({'supperGroupId': supperGroupId})
+    data = None
+    for supperGroup in result:
+        data = supperGroup
+    data['status'] = 'Closed'
+    db.SupperGroup.update_one({"supperGroupId": supperGroupId},
+                                      {"$set": data})
+    # print("Supper Group Closed")
 
 
 @app.route('/supper/supperGroup', methods=['GET'])
@@ -300,16 +317,14 @@ def all_supper_group():
         ]
 
         result = db.SupperGroup.aggregate(pipeline)
-
-
         data = []
         currentTime = int(datetime.now().timestamp())
         for supperGroup in result:
-            if supperGroup.get('status') == 'open' and supperGroup.get('closingTime') <= currentTime:
+            if supperGroup.get('status') == 'Open' and supperGroup.get('closingTime') <= currentTime:
                 # Checks if closingTime has passed. If so, set status to closed.
-                supperGroup['status'] = 'closed'
+                supperGroup['status'] = 'Closed'
                 query = {'supperGroupId': supperGroup.get('supperGroupId')}
-                changes = {'$set': {'status': 'closed'}}
+                changes = {'$set': {'status': 'Closed'}}
                 db.SupperGroup.update_one(query, changes)
 
             # Creates userIDList for each supper group
@@ -319,7 +334,10 @@ def all_supper_group():
             supperGroup.pop('orderList')
 
             supperGroup['restaurantId'] = str(supperGroup.pop('restaurantId'))
-            data.append(supperGroup)
+
+            # Filters only open supper groups
+            if supperGroup['status'] == 'Open': 
+                data.append(supperGroup)
 
         data.sort(key=lambda x: x.get('createdAt'), reverse=True)
 
@@ -345,6 +363,12 @@ def create_supper_group():
         supperGroupData["createdAt"] = int(datetime.now().timestamp())
         db.SupperGroup.insert_one(supperGroupData)
         supperGroupData['_id'] = str(supperGroupData.pop('_id'))
+
+        # Add scheduler to close supper group order
+        closingTime = datetime.fromtimestamp(supperGroupData['closingTime'])
+        sched.add_job(closeSupperGroup, 'date', run_date=closingTime, args=[newsupperGroupID])
+        if not sched.running:
+            sched.start()
 
         # Automatically creates order for supperGroup owner
         orderData = {
@@ -482,6 +506,13 @@ def supper_group(supperGroupId):
 
             db.SupperGroup.update_one({"supperGroupId": supperGroupId},
                                       {"$set": data})
+                                      
+            # Add scheduler to close supper group order
+            closingTime = datetime.fromtimestamp(data['closingTime'])
+            sched.add_job(closeSupperGroup, 'date',
+                        run_date=closingTime, args=[supperGroupId])
+            if not sched.running:
+                sched.start()
 
             response = {"status": "success",
                         "message": "Supper Group edited",
@@ -514,6 +545,10 @@ def supper_group(supperGroupId):
 def create_order():
     try:
         data = request.get_json()
+        data['foodIds'] = []
+        data['totalCost'] = 0
+        data['paymentMethod'] = 'Nil'
+        data['userContact'] = 0
         data["createdAt"] = int(datetime.now().timestamp())
         data['hasPaid'] = False
         data['hasReceived'] = False
@@ -1116,6 +1151,20 @@ def user_order(supperGroupId, userID):
     except Exception as e:
         print(e)
         return make_response({"status": "failed", "err": str(e)}, 400)
+
+
+def delete_supper_group(supperGroupId):
+    foodIdList = list(db.Order.find(
+                {'supperGroupId': supperGroupId}, {'foodIds': 1, '_id': 0}))
+    foods = [food.get('foodIds') for food in foodIdList]
+
+    remove = db.SupperGroup.delete_one(
+        {"supperGroupId": supperGroupId}).deleted_count
+    if remove == 0:
+        raise Exception("Supper group not found")
+    db.Order.delete_many({'supperGroupId': supperGroupId})
+    db.FoodOrder.delete_many({'_id': {'$in': foods}})
+    print("Supper Group deleted!")
 
 
 ###########################################################
