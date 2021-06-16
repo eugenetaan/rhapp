@@ -502,13 +502,17 @@ def supper_group(supperGroupId):
             response = {"status": "success", "data": data}
 
         elif request.method == "PUT":  # Edit supper group details
+            supper_group = db.SupperGroup.find({'supperGroupId': supperGroupId})
+            for sg in supper_group:
+                supperGroup = sg
+
             data = request.get_json()
 
             db.SupperGroup.update_one({"supperGroupId": supperGroupId},
                                       {"$set": data})
                                       
             # Add scheduler to close supper group order
-            closingTime = datetime.fromtimestamp(data['closingTime'])
+            closingTime = datetime.fromtimestamp(supperGroup['closingTime'])
             sched.add_job(closeSupperGroup, 'date',
                         run_date=closingTime, args=[supperGroupId])
             if not sched.running:
