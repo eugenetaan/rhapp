@@ -691,13 +691,18 @@ def add_food(orderId):
 
 @app.route('/supper/order/<orderId>/food/<foodId>', methods=['GET', 'PUT', 'DELETE'])
 @cross_origin(supports_credentials=True)
-def foodorder(orderId, foodId):
+def food_order(orderId, foodId):
     try:
         if request.method == 'GET':
-            # Route doesn't seem necessary
-            data = {}
+            data = db.FoodOrder.find_one({"_id": ObjectId(foodId)})
+
+            data['orderId'] = str(data.pop('_id'))
+            data['restaurantId'] = str(data['restaurantId'])
+            data['foodMenuId'] = str(data['foodMenuId'])
+
             response = {"status": "success",
                         "data": data}
+
         elif request.method == 'PUT':
             data = request.get_json()
             food_result = db.FoodOrder.find_one_and_update({"_id": ObjectId(foodId)},
