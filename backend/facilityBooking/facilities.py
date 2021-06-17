@@ -335,6 +335,10 @@ def all_supper_group():
 
             supperGroup['restaurantId'] = str(supperGroup.pop('restaurantId'))
 
+            query = {'supperGroupId': supperGroup.get('supperGroupId')}
+            changes = {'$set': {'currentFoodCost': supperGroup['currentFoodCost']}}
+            db.SupperGroup.update_one(query, changes)
+
             # Filters only open supper groups
             if supperGroup['status'] == 'Open': 
                 data.append(supperGroup)
@@ -492,11 +496,11 @@ def supper_group(supperGroupId):
             if data == None:
                 raise Exception('Order group not found.')
 
-            elif data.get('status') == 'open' and data.get('closingTime') <= currentTime:
+            elif data.get('status') == 'Open' and data.get('closingTime') <= currentTime:
                 # Checks if closingTime has passed. If so, set status to closed.
-                data['status'] = 'closed'
+                data['status'] = 'Closed'
                 query = {'supperGroupId': data.get('supperGroupId')}
-                changes = {'$set': {'status': 'closed'}}
+                changes = {'$set': {'status': 'Closed'}}
                 db.SupperGroup.update_one(query, changes)
 
             response = {"status": "success", "data": data}
@@ -611,7 +615,38 @@ def get_order(orderId):
 
             response = {"status": "success", "data": data}
         elif request.method == 'PUT':
+            selectedOrder = db.Order.find({"_id": ObjectId(orderId)})
+            order = {}
+            for ord in selectedOrder:
+                order = ord
+
+            selectedSuppergroup = db.SupperGroup.find({'supperGroupId': order['supperGroupId']})
+            supperGroup = {}
+            for sg in selectedSuppergroup:
+                supperGroup = sg
+
+            costLimit = supperGroup['costLimit']
+            currentPrice = supperGroup['currentFoodCost']
+
+
             data = request.get_json()
+            # If totalPrice for order is updated
+            if 'totalCost' in data:
+                if ((data['totalCost'] + currentPrice) > costLimit):
+                    raise Exception('Total price exceeded cost limit')
+                
+                # Update supperGroup totalPrice when order is added
+                else: 
+                    query = {'supperGroupId': order['supperGroupId']}
+                    changes = {'$set': {'totalPrice': currentPrice + data['totalCost']}}
+                    db.SupperGroup.update_one(query, changes)
+
+                # Change supper group status when totalPrice >= 90% of cost limit
+                if (data['totalCost'] + currentPrice) > (costLimit * 0.9):
+                    query = {'supperGroupId': order['supperGroupId']}
+                    changes = {'$set': {'status': 'Pending'}}
+                    db.SupperGroup.update_one(query, changes)
+
             db.Order.update_one({"_id": ObjectId(orderId)},
                                 {"$set": data})
 
