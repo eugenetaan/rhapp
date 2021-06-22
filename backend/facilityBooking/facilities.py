@@ -754,6 +754,10 @@ def food_order(orderId, foodId):
                         else:
                             continue
                 data['foodPrice'] = data['foodPrice'] * data['quantity']
+            elif 'quantity' in data:
+                temp = db.FoodOrder.find_one({"_id": ObjectId(foodId)})
+                data['foodPrice'] = temp['foodPrice'] / temp['quantity']
+                data['foodPrice'] = data['foodPrice'] * data['quantity']
 
             food_result = db.FoodOrder.find_one_and_update({"_id": ObjectId(foodId)},
                                                            {"$set": data})
